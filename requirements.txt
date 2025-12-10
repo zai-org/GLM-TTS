@@ -15,7 +15,7 @@ zhconv==1.4.3
 zhon==2.1.1
 
 inflect==7.3.1
-numpy==2.2.6
+numpy==1.26.4
 onnxruntime_gpu==1.17.0
 openai_whisper==20231117
 contractions==0.1.73
