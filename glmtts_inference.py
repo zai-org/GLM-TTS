@@ -78,7 +78,7 @@ def _assert_shape_and_get_len(token):
     token_len = torch.tensor([token.shape[1]], dtype=torch.int32).to(token.device)
     return token_len
 
-def load_frontends(speech_tokenizer, sample_rate=24000, use_phoneme=False, frontend_dir="./frontend"):
+def load_frontends(speech_tokenizer, sample_rate=24000, use_phoneme=False, frontend_dir="frontend"):
     if sample_rate == 32000:
         feat_extractor = partial(mel_spectrogram, sampling_rate=sample_rate, hop_size=640, n_fft=2560, num_mels=80, win_size=2560, fmin=0, fmax=8000, center=False)
         print("Configured for 32kHz frontend.")
@@ -89,7 +89,7 @@ def load_frontends(speech_tokenizer, sample_rate=24000, use_phoneme=False, front
         raise ValueError(f"Unsupported sampling_rate: {sample_rate}")
 
     glm_tokenizer = AutoTokenizer.from_pretrained(
-        "ckpt/vq32k-phoneme-tokenizer", trust_remote_code=True
+        os.path.join('ckpt', 'vq32k-phoneme-tokenizer'), trust_remote_code=True
     )
 
     tokenize_fn = lambda text: glm_tokenizer.encode(text)
@@ -367,10 +367,11 @@ def jsonl_generate(
                 torchaudio.save(wav_save_path, tts_speech, sample_rate)
 
                 # Optinal: save prompt features as data input for RL
-                # feat_root = 'grpo/data/'
-                # np.save(feat_root + 'prompt_speech_token/' + item['uttid'], prompt_speech_token.cpu().squeeze().numpy())
-                # np.save(feat_root + 'prompt_speech_feat/' + item['uttid'], speech_feat.cpu().squeeze().numpy())
-                # np.save(feat_root + 'embedding/' + item['uttid'], embedding.cpu().squeeze().numpy())
+                # feat_root = os.path.join('grpo', 'data')
+
+                # np.save(os.path.join(feat_root, 'prompt_speech_token', item['uttid']), prompt_speech_token.cpu().squeeze().numpy())
+                # np.save(os.path.join(feat_root, 'prompt_speech_feat', item['uttid']), speech_feat.cpu().squeeze().numpy())
+                # np.save(os.path.join(feat_root, 'embedding', item['uttid']), embedding.cpu().squeeze().numpy())
 
             except Exception as e:
                 logging.error(f"Error processing {item.get('uttid', 'unknown')}: {e}")
@@ -382,15 +383,16 @@ def jsonl_generate(
 
 def load_models(use_phoneme=False, sample_rate=24000):
     # Load Speech Tokenizer
+    speech_tokenizer_path = os.path.join("ckpt", "speech_tokenizer")
     _model, _feature_extractor = yaml_util.load_speech_tokenizer(
-        "ckpt/speech_tokenizer"
+        speech_tokenizer_path
     )
     speech_tokenizer = SpeechTokenizer(_model, _feature_extractor)
 
     # Load Frontends
     frontend, text_frontend = load_frontends(speech_tokenizer, sample_rate=sample_rate, use_phoneme=use_phoneme)
 
-    llama_path = "ckpt/llm"
+    llama_path = os.path.join("ckpt", "llm")
 
     llm = GLMTTS(
         llama_cfg_path=os.path.join(llama_path, "config.json"), mode="PRETRAIN"
@@ -404,8 +406,10 @@ def load_models(use_phoneme=False, sample_rate=24000):
     special_token_ids = get_special_token_ids(frontend.tokenize_fn)
     llm.set_runtime_vars(special_token_ids=special_token_ids)
 
+    flow_ckpt = os.path.join("ckpt", "flow", "flow.pt")
+    flow_config = os.path.join("ckpt", "flow", "config.yaml")
     flow = yaml_util.load_flow_model(
-        "ckpt/flow/flow.pt", "ckpt/flow/config.yaml", DEVICE
+        flow_ckpt, flow_config, DEVICE
     )
 
     token2wav = tts_model_util.Token2Wav(flow, sample_rate=sample_rate, device=DEVICE)

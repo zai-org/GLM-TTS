@@ -15,6 +15,7 @@ import gradio as gr
 import torch
 import numpy as np
 import logging
+import os
 from glmtts_inference import (
     load_models,
     generate_long,
@@ -156,7 +157,7 @@ def clear_memory():
 
 # --- Gradio UI Layout ---
 
-with gr.Blocks(title="GLMTTS Inference", theme=gr.themes.Soft()) as app:
+with gr.Blocks(title="GLMTTS Inference") as app:
     gr.Markdown("# 🎵 GLMTTS Open Source Demo")
     gr.Markdown("Zero-shot text-to-speech generation using GLMTTS models.")
 
@@ -167,7 +168,7 @@ with gr.Blocks(title="GLMTTS Inference", theme=gr.themes.Soft()) as app:
             prompt_audio = gr.Audio(
                 label="Upload Prompt Audio (Reference Voice)",
                 type="filepath",
-                value="examples/prompt/jiayan_zh.wav"
+                value=os.path.join("examples", "prompt", "jiayan_zh.wav")
             )
             
             prompt_text = gr.Textbox(
@@ -221,5 +222,6 @@ if __name__ == "__main__":
     app.queue().launch(
         server_name="0.0.0.0", 
         server_port=8048, 
-        inbrowser=True
+        theme=gr.themes.Soft(),
+        share=False
     )

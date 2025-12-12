@@ -92,7 +92,7 @@ bash glmtts_inference.sh
 #### 交互式Web界面
 
 ```bash
-python tools/gradio_app.py
+python -m tools.gradio_app
 ```
 
 ## 系统架构

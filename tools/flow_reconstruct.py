@@ -35,7 +35,7 @@ def load_flow_only(frontend_dir, flow_ckpt, flow_config, sample_rate=24000):
     print(f"[INFO] Loading Speech Tokenizer and Frontends (SR={sample_rate}) from {frontend_dir}...")
     
     # Load Speech Tokenizer
-    _model, _feature_extractor = yaml_util.load_speech_tokenizer('ckpt/speech_tokenizer')
+    _model, _feature_extractor = yaml_util.load_speech_tokenizer(os.path.join('ckpt', 'speech_tokenizer'))
     speech_tokenizer = SpeechTokenizer(_model, _feature_extractor)
     
     # Load Frontends with specific sample_rate
@@ -117,7 +117,7 @@ def main():
     # Model Arguments
     parser.add_argument("--flow_ckpt", type=str, default="ckpt/flow/flow.pt", help="Path to Flow model checkpoint.")
     parser.add_argument("--flow_config", type=str, default="ckpt/flow/config.yaml", help="Path to Flow model config.")
-    parser.add_argument("--frontend_dir", type=str, default="./frontend", help="Path to frontend resources.")
+    parser.add_argument("--frontend_dir", type=str, default="frontend", help="Path to frontend resources.")
     parser.add_argument("--sample_rate", type=int, default=24000, help="Output sample rate (24000 or 32000).")
     
     args = parser.parse_args()
