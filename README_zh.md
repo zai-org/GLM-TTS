@@ -44,8 +44,8 @@ GLM-TTS 是一个基于大型语言模型的高质量文本到语音(TTS)合成�
 git clone https://github.com/zai-org/GLM-TTS.git
 cd GLM-TTS
 
-# 安装依赖
-pip install -r requirements.txt
+# 安装最小运行依赖
+pip install -r requirements-mini.txt
 
 # 安装强化学习相关依赖（可选）
 cd grpo/modules
