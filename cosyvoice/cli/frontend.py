@@ -41,10 +41,15 @@ try:
     import ttsfrd
     use_ttsfrd = True
 except ImportError:
-    print("Warning: failed to import ttsfrd, use WeTextProcessing instead")
-    from tn.chinese.normalizer import Normalizer as ZhNormalizer
-    from tn.english.normalizer import Normalizer as EnNormalizer
     use_ttsfrd = False
+    try:
+        print("Warning: failed to import ttsfrd, use WeTextProcessing instead")
+        from tn.chinese.normalizer import Normalizer as ZhNormalizer
+        from tn.english.normalizer import Normalizer as EnNormalizer
+    except ImportError:
+        print("Warning: failed to import ttsfrd and WeTextProcessing, use wetext instead")
+        from wetext import Normalizer as ZhNormalizer
+        from wetext import Normalizer as EnNormalizer
 
 
 class SpeechTokenizer:
@@ -144,7 +149,7 @@ class TextFrontEnd:
                 remove_erhua=False,
                 full_to_half=True,
                 remove_interjections=False,
-                overwrite_cache=True
+                #overwrite_cache=True
             )
             self.en_tn_model = EnNormalizer()
 

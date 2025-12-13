@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import onnxruntime
+onnxruntime.set_default_logger_severity(3)
 import gradio as gr
 import torch
 import numpy as np
@@ -21,6 +23,14 @@ from glmtts_inference import (
     generate_long,
     DEVICE
 )
+import argparse
+
+parser = argparse.ArgumentParser() 
+parser.add_argument("--server_name", type=str, default="0.0.0.0", help="IP address, change to 0.0.0.0 for LAN access")
+parser.add_argument("--server_port", type=int, default=8048, help="Port number to use")
+parser.add_argument("--share", action="store_true", help="Whether to enable gradio sharing")
+parser.add_argument("--mcp_server", action="store_true", help="Whether to enable mcp server")
+args = parser.parse_args()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -157,7 +167,7 @@ def clear_memory():
 
 # --- Gradio UI Layout ---
 
-with gr.Blocks(title="GLMTTS Inference") as app:
+with gr.Blocks(title="GLMTTS Inference", theme=gr.themes.Soft()) as app:
     gr.Markdown("# 🎵 GLMTTS Open Source Demo")
     gr.Markdown("Zero-shot text-to-speech generation using GLMTTS models.")
 
@@ -220,8 +230,9 @@ with gr.Blocks(title="GLMTTS Inference") as app:
 
 if __name__ == "__main__":
     app.queue().launch(
-        server_name="0.0.0.0", 
-        server_port=8048, 
-        theme=gr.themes.Soft(),
-        share=False
+        server_name=args.server_name, 
+        server_port=args.server_port,
+        share=args.share, 
+        mcp_server=args.mcp_server,
+        inbrowser=True,
     )
