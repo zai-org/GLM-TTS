@@ -26,7 +26,7 @@ emoji==2.14.1
 evaluation==0.0.2
 fastapi==0.123.9
 funasr==1.1.6
-gradio==6.1.0
+gradio==5.49.0
 HyperPyYAML==1.2.2
 jieba==0.42.1
 jiwer==4.0.0

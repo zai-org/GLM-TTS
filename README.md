@@ -47,8 +47,8 @@ Ensure you use Python 3.10 - Python 3.12 versions.
 git clone https://github.com/zai-org/GLM-TTS.git
 cd GLM-TTS
 
-# Install dependencies
-pip install -r requirements.txt
+# Install minimum runtime dependencies
+pip install -r requirements-mini.txt
 
 # Install reinforcement learning related dependencies (optional)
 cd grpo/modules

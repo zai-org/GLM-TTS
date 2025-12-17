@@ -1,0 +1,21 @@
+torch==2.7.1
+torchaudio
+torchvision
+transformers
+huggingface_hub
+modelscope
+gradio==5.49.0
+numpy==1.26.4
+contractions
+inflect
+funasr
+onnxruntime-gpu==1.22.0
+pypinyin
+emoji
+pronouncing
+hyperpyyaml
+peft
+tiktoken
+x_transformers
+wetext; sys_platform == 'win32'
+WeTextProcessing; sys_platform != 'win32'
