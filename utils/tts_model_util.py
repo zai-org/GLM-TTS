@@ -18,7 +18,7 @@ from utils.vocos_util import load_vocos_jit
 from utils.hift_util import load_hift
 
 class Token2Wav:
-    def __init__(self, flow, sample_rate: int = 24000, device: str = "cuda"):
+    def __init__(self, flow, sample_rate: int = 24000, device: str = "cuda",ckpt_path: str = ""):
         self.device = device
         self.flow = flow
         self.input_frame_rate = flow.input_frame_rate
@@ -28,11 +28,11 @@ class Token2Wav:
         if sample_rate == 32000:
             self.hop_size = 640
             self.sample_rate = 32000
-            self.vocoder = load_vocos_jit(device)
+            self.vocoder = load_vocos_jit(device, ckpt_path)
         elif sample_rate == 24000:
             self.hop_size = 480
             self.sample_rate = 24000
-            self.vocoder = load_hift(device)
+            self.vocoder = load_hift(device, ckpt_path=ckpt_path)
         else:
             raise ValueError(f"Unsupported sample_rate: {sample_rate}")
     
