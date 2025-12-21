@@ -279,6 +279,9 @@ class GLMTTS(nn.Module):
             # Prepare input for the next step (auto-regressive) use cache prefix
             inputs_embeds = self.llama_embedding(torch.LongTensor([top_ids]).to(device))[None]
 
+        if queue is not None:
+            queue.put_nowait(None)  # Signal completion
+
         # 5. Validation and Output Construction
         # Ensure all tokens are within the valid audio token range
         for token in out_tokens:

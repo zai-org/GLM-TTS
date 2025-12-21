@@ -86,8 +86,6 @@ class Token2Wav:
 
             # [Modification] Replace with Vocos inference, return wav tensor directly
             wav_bt = self.vocoder(mel_bdt)
-            if queue is not None:
-                queue.put_nowait((wav_bt, mel_bdt))
             
             mel_list.append(mel_bdt)
             wav_npy = wav_bt.squeeze().detach().cpu().numpy()
@@ -120,12 +118,16 @@ class Token2Wav:
             if i == 0:
                 if len(chunked_list) == 1:
                     result_wav_list.append(wav_npy)
+                    if queue is not None:
+                        queue.put_nowait(wav_npy)
                     continue
                 
                 # 1. Non-overlap area, safe to return/play
                 # Ensure we don't slice with negative index if wav is too short
                 valid_len = max(0, len(wav_npy) - overlap_len)
                 result_wav_list.append(wav_npy[:valid_len])
+                if queue is not None:
+                    queue.put_nowait(wav_npy[:valid_len])
                 wav_len_pointer += len(result_wav_list[-1])
 
                 # 2. Fade area, stored for next iteration
@@ -151,15 +153,22 @@ class Token2Wav:
             # Case 3: Last chunk
             if i == len(chunked_list) - 1:
                 result_wav_list.append(current_wav)
+                if queue is not None:
+                    queue.put_nowait(current_wav)
                 break
 
             # 3. Return content (minus the overlap for the next chunk)
             valid_len = max(0, len(current_wav) - overlap_len)
             result_wav_list.append(current_wav[:valid_len])
+            if queue is not None:
+                queue.put_nowait(current_wav[:valid_len])
             wav_len_pointer += len(result_wav_list[-1])
 
             # 4. Update fade area for the next iteration
             last_fade_out_array = current_wav[-overlap_len:-look_back_len] if look_back_len > 0 else current_wav[-overlap_len:]
+
+        if queue is not None:
+            queue.put_nowait(None)  # Signal completion
 
         # Statistics: length of each segment
         sec_list = [len(wav) / self.sample_rate for wav in result_wav_list]
