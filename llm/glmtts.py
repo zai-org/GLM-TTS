@@ -273,7 +273,7 @@ class GLMTTS(nn.Module):
                 break
                 
             if queue is not None:
-                queue.put_nowait(top_ids)
+                queue.put_nowait(top_ids - self.ats)
             out_tokens.append(top_ids)
             
             # Prepare input for the next step (auto-regressive) use cache prefix
