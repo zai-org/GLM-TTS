@@ -13,6 +13,7 @@
 # limitations under the License.
 import json
 import yaml
+import queue
 from typing import Union, Optional, List, Dict, Any
 import torch
 import torch.nn as nn
@@ -158,7 +159,8 @@ class GLMTTS(nn.Module):
         max_token_text_ratio: float = 20,
         min_token_text_ratio: float = 2,
         sample_method: str = "ras",
-        spk: str = "tongtong"
+        spk: str = "tongtong",
+        queue: queue.Queue = None,
     ) -> torch.Tensor:
         """
         Autoregressive inference loop to generate speech tokens from text.
@@ -270,9 +272,11 @@ class GLMTTS(nn.Module):
             if top_ids == self.eoa:
                 break
                 
+            if queue is not None:
+                queue.put_nowait(top_ids)
             out_tokens.append(top_ids)
             
-            # Prepare input for the next step (auto-regressive)
+            # Prepare input for the next step (auto-regressive) use cache prefix
             inputs_embeds = self.llama_embedding(torch.LongTensor([top_ids]).to(device))[None]
 
         # 5. Validation and Output Construction

@@ -11,9 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import queue
+from typing import List, Tuple, Generator, Optional, Union
+
 import torch
 import numpy as np
-from typing import List, Tuple, Generator, Optional, Union
+
 from utils.vocos_util import load_vocos_jit
 from utils.hift_util import load_hift
 
@@ -44,6 +47,7 @@ class Token2Wav:
                      embedding: Optional[torch.Tensor] = None,
                      prompt_token_list: Optional[torch.Tensor] = None,
                      prompt_feat_td: Optional[torch.Tensor] = None,
+                     queue: queue.Queue = None,
                      ) -> Tuple[torch.Tensor, List[float], List[float], List[np.ndarray]]:
         
         if not isinstance(syn_token, list):
@@ -80,6 +84,8 @@ class Token2Wav:
 
             # [Modification] Replace with Vocos inference, return wav tensor directly
             wav_bt = self.vocoder(mel_bdt)
+            if queue is not None:
+                queue.put_nowait((wav_bt, mel_bdt))
             
             mel_list.append(mel_bdt)
             wav_npy = wav_bt.squeeze().detach().cpu().numpy()
@@ -190,7 +196,7 @@ class Token2Wav:
                 mel_big = mel_big[:, :, -overlap_mel_len:]
                 
                 diff = self.calc_ratio(mel_small, mel_big) * 100
-                # print(f"Chunk {i}: diff:{diff :.2f}%") # Optional logging
+                print(f"Chunk {i}: diff:{diff :.2f}%") # Optional logging
                 diff_list.append(diff)
 
         return wav_bt, sec_list, diff_list, result_wav_list
