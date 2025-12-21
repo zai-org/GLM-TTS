@@ -7,6 +7,8 @@
 </div>
 
 <p align="center">
+    <a href="https://arxiv.org/abs/2512.14291" target="_blank">📜 Paper</a>
+    &nbsp;&nbsp;|&nbsp;&nbsp;
     <a href="https://huggingface.co/zai-org/GLM-TTS" target="_blank">🤗 HuggingFace</a>
     &nbsp;&nbsp;|&nbsp;&nbsp;
     <a href="https://modelscope.cn/models/ZhipuAI/GLM-TTS" target="_blank">🤖 ModelScope</a>
@@ -20,6 +22,7 @@ GLM-TTS 是一个基于大型语言模型的高质量文本到语音(TTS)合成�
 ## 更新计划
 
 - **[2025.12.11]** 🎉 GLM-TTS 项目正式开源！包括推理脚本和一系列模型权重。
+- **[2025.12.17]** 📚 GLM-TTS 技术报告已在 arXiv 上发布：[2512.14291](https://arxiv.org/abs/2512.14291)。
 - **[Coming Soon]** 2D-Vocos声码器更新中。
 - **[Coming Soon]** 强化学习优化后的模型权重。
 
@@ -244,3 +247,19 @@ GLM-TTS/
 - [Llama](https://github.com/meta-llama/llama) - 提供基础语言模型架构
 - [Vocos](https://github.com/charactr-platform/vocos) - 提供高质量声码器
 - [GRPO-Zero](https://github.com/policy-gradient/GRPO-Zero) - 强化学习算法实现灵感
+
+
+## 引用
+
+如果您觉得 GLM-TTS 对您的研究有用，请引用我们的技术报告：
+
+```bibtex
+@misc{cui2025glmttstechnicalreport,
+      title={GLM-TTS Technical Report}, 
+      author={Jiayan Cui and Zhihan Yang and Naihan Li and Jiankun Tian and Xingyu Ma and Yi Zhang and Guangyu Chen and Runxuan Yang and Yuqing Cheng and Yizhi Zhou and Guochen Yu and Xiaotao Gu and Jie Tang},
+      year={2025},
+      eprint={2512.14291},
+      archivePrefix={arXiv},
+      primaryClass={cs.SD},
+      url={https://arxiv.org/abs/2512.14291}, 
+}

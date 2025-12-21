@@ -7,6 +7,8 @@
 </div>
 
 <p align="center">
+    <a href="https://arxiv.org/abs/2512.14291" target="_blank">📜 Paper</a>
+    &nbsp;&nbsp;|&nbsp;&nbsp;
     <a href="https://huggingface.co/zai-org/GLM-TTS" target="_blank">🤗 HuggingFace</a>
     &nbsp;&nbsp;|&nbsp;&nbsp;
     <a href="https://modelscope.cn/models/ZhipuAI/GLM-TTS" target="_blank">🤖 ModelScope</a>
@@ -20,6 +22,7 @@ GLM-TTS is a high-quality text-to-speech (TTS) synthesis system based on large l
 ## News & Updates
 
 - **[2025.12.11]** 🎉 The project is officially open-sourced, featuring inference scripts and a series of model weights.
+- **[2025.12.17]** GLM-TTS Technical Report is available on arXiv: [2512.14291](https://arxiv.org/abs/2512.14291).
 - **[Coming Soon]** 2D Vocos vocoder update in progress.
 - **[Coming Soon]** Model Weights Optimized via Reinforcement Learning
 
@@ -246,3 +249,19 @@ We thank the following open-source projects for their support:
 - [Llama](https://github.com/meta-llama/llama) - Providing basic language model architecture
 - [Vocos](https://github.com/charactr-platform/vocos) - Providing high-quality vocoder
 - [GRPO-Zero](https://github.com/policy-gradient/GRPO-Zero) - Reinforcement learning algorithm implementation inspiration
+
+---
+## Citation
+
+If you find GLM-TTS useful for your research, please cite our technical report:
+
+```bibtex
+@misc{cui2025glmttstechnicalreport,
+      title={GLM-TTS Technical Report}, 
+      author={Jiayan Cui and Zhihan Yang and Naihan Li and Jiankun Tian and Xingyu Ma and Yi Zhang and Guangyu Chen and Runxuan Yang and Yuqing Cheng and Yizhi Zhou and Guochen Yu and Xiaotao Gu and Jie Tang},
+      year={2025},
+      eprint={2512.14291},
+      archivePrefix={arXiv},
+      primaryClass={cs.SD},
+      url={https://arxiv.org/abs/2512.14291}, 
+}
