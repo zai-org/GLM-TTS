@@ -11,14 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import queue
+from typing import List, Tuple, Generator, Optional, Union
+
 import torch
 import numpy as np
-from typing import List, Tuple, Generator, Optional, Union
+
 from utils.vocos_util import load_vocos_jit
 from utils.hift_util import load_hift
 
 class Token2Wav:
-    def __init__(self, flow, sample_rate: int = 24000, device: str = "cuda"):
+    def __init__(self, flow, sample_rate: int = 24000, device: str = "cuda",ckpt_path: str = ""):
         self.device = device
         self.flow = flow
         self.input_frame_rate = flow.input_frame_rate
@@ -28,11 +31,11 @@ class Token2Wav:
         if sample_rate == 32000:
             self.hop_size = 640
             self.sample_rate = 32000
-            self.vocoder = load_vocos_jit(device)
+            self.vocoder = load_vocos_jit(device, ckpt_path)
         elif sample_rate == 24000:
             self.hop_size = 480
             self.sample_rate = 24000
-            self.vocoder = load_hift(device)
+            self.vocoder = load_hift(device, ckpt_path=ckpt_path)
         else:
             raise ValueError(f"Unsupported sample_rate: {sample_rate}")
     
@@ -44,7 +47,9 @@ class Token2Wav:
                      embedding: Optional[torch.Tensor] = None,
                      prompt_token_list: Optional[torch.Tensor] = None,
                      prompt_feat_td: Optional[torch.Tensor] = None,
-                     ) -> Tuple[torch.Tensor, List[float], List[float], List[np.ndarray]]:
+                     n_timesteps: int = 10,
+                     queue: queue.Queue = None,
+                     ) -> Tuple[torch.Tensor, List[float], List[float], List[np.ndarray], list[torch.Tensor]]:
         
         if not isinstance(syn_token, list):
             raise TypeError("syn_token must be a list.")
@@ -73,6 +78,7 @@ class Token2Wav:
                 prompt_token=prompt_token_list.to(self.device),
                 prompt_feat=prompt_feat_td.to(self.device),
                 embedding=embedding.to(self.device),
+                n_timesteps=n_timesteps,
                 last_step_cache=diff_cache,
                 is_causal=True,
                 block_pattern=[len(prompt_token_list)] + block_sizes
@@ -112,12 +118,16 @@ class Token2Wav:
             if i == 0:
                 if len(chunked_list) == 1:
                     result_wav_list.append(wav_npy)
+                    if queue is not None:
+                        queue.put_nowait(wav_npy)
                     continue
                 
                 # 1. Non-overlap area, safe to return/play
                 # Ensure we don't slice with negative index if wav is too short
                 valid_len = max(0, len(wav_npy) - overlap_len)
                 result_wav_list.append(wav_npy[:valid_len])
+                if queue is not None:
+                    queue.put_nowait(wav_npy[:valid_len])
                 wav_len_pointer += len(result_wav_list[-1])
 
                 # 2. Fade area, stored for next iteration
@@ -143,15 +153,22 @@ class Token2Wav:
             # Case 3: Last chunk
             if i == len(chunked_list) - 1:
                 result_wav_list.append(current_wav)
+                if queue is not None:
+                    queue.put_nowait(current_wav)
                 break
 
             # 3. Return content (minus the overlap for the next chunk)
             valid_len = max(0, len(current_wav) - overlap_len)
             result_wav_list.append(current_wav[:valid_len])
+            if queue is not None:
+                queue.put_nowait(current_wav[:valid_len])
             wav_len_pointer += len(result_wav_list[-1])
 
             # 4. Update fade area for the next iteration
             last_fade_out_array = current_wav[-overlap_len:-look_back_len] if look_back_len > 0 else current_wav[-overlap_len:]
+
+        if queue is not None:
+            queue.put_nowait(None)  # Signal completion
 
         # Statistics: length of each segment
         sec_list = [len(wav) / self.sample_rate for wav in result_wav_list]
@@ -190,10 +207,10 @@ class Token2Wav:
                 mel_big = mel_big[:, :, -overlap_mel_len:]
                 
                 diff = self.calc_ratio(mel_small, mel_big) * 100
-                # print(f"Chunk {i}: diff:{diff :.2f}%") # Optional logging
+                print(f"Chunk {i}: diff:{diff :.2f}%") # Optional logging
                 diff_list.append(diff)
 
-        return wav_bt, sec_list, diff_list, result_wav_list
+        return wav_bt, sec_list, diff_list, result_wav_list, mel_list
     
     def token2wav_with_cache(self,
                              token_bt: Union[List[int], np.ndarray, torch.Tensor],

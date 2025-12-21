@@ -19,7 +19,7 @@ import json
 import random
 from typing import Callable, List, Tuple, Union, Optional
 
-import contractions
+import librosa
 import inflect
 import onnxruntime
 import torch
@@ -580,6 +580,10 @@ class TTSFrontEnd:
     """
     Unified Frontend for TTS, managing Text Frontend, Speech Tokenizer, and Speaker Embedding extraction.
     """
+    LOWER_SR = 16000
+    #HIGH_SR = 22050
+    HIGH_SR = 24000
+
     def __init__(self,
                  tokenize_fn: Callable,
                  speech_tokenizer: SpeechTokenizer,
@@ -651,8 +655,51 @@ class TTSFrontEnd:
         speech_feat = speech_feat.unsqueeze(dim=0)
         return speech_feat
 
+    def postprocess(self,speech, top_db=60, hop_length=220, win_length=440):
+        max_val = 0.8
+  
+        speech, _ = librosa.effects.trim(
+            speech, top_db=top_db,
+            frame_length=win_length,
+            hop_length=hop_length
+        )
+  
+        if speech.abs().max() > max_val:
+            speech = speech / speech.abs().max() * max_val
+  
+        zeros = torch.zeros(1, int(self.HIGH_SR * 0.2))
+  
+        print(speech, zeros)
+  
+        speech = torch.concat([speech, zeros], dim=1)
 
-if __name__ == "__main__":
+        return speech
+  
+    def load_spk_from_wav(self, wav_file):
+        target_wav, sample_rate = torchaudio.load(wav_file)
+        if target_wav.shape[0] == 2:
+            # 计算两个声道的平均值
+            target_wav = target_wav.mean(dim=0, keepdim=True)
+  
+        target_wav_high = torchaudio.transforms.Resample(sample_rate, self.HIGH_SR)(target_wav)
+        target_wav_high = self.postprocess(target_wav_high)
+        target_wav_lower = torchaudio.transforms.Resample(self.HIGH_SR, self.LOWER_SR)(target_wav_high)
+  
+        speech_feat = self._extract_speech_feat(target_wav_high)
+        speech_token = self._extract_speech_token(target_wav_lower)
+        embedding = self._extract_spk_embedding(target_wav_lower)
+  
+        print(f"speech_feat {type(speech_feat)}")
+        print(f"speech_token {type(speech_token)}")    
+        print(f"embedding {type(embedding)}")
+  
+        return {
+            "speech_feat": speech_feat,
+            "speech_token": speech_token,
+            "embedding": embedding
+        }
+
+def test_text_frontend():
     # Test example
     frontend = TextFrontEnd(use_phoneme=True)
     text = frontend.text_normalize("You're absolutely killing it! Keep that amazing energy up—nothing can stop you, girl! You're gonna rock it!")
@@ -660,3 +707,20 @@ if __name__ == "__main__":
     
     text = frontend.text_normalize("噢，我知道了。")
     print(f"Chinese Normalization: {text}")
+
+    text = "你好，世界！This is a test sentence with numbers 123 and symbols #@$%."
+    normalized_text = frontend.text_normalize(text)
+    print(f"Normalized Text: {normalized_text}")
+
+    g2p_text = frontend.g2p_infer(normalized_text)
+    print(f"G2P Text: {g2p_text}")
+
+def test_speech_frontend():
+    pass
+
+
+"""
+python -m cosyvoice.cli.frontend
+"""
+if __name__ == "__main__":
+    test_text_frontend()
