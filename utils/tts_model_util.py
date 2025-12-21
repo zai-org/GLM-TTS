@@ -47,8 +47,9 @@ class Token2Wav:
                      embedding: Optional[torch.Tensor] = None,
                      prompt_token_list: Optional[torch.Tensor] = None,
                      prompt_feat_td: Optional[torch.Tensor] = None,
+                     n_timesteps: int = 10,
                      queue: queue.Queue = None,
-                     ) -> Tuple[torch.Tensor, List[float], List[float], List[np.ndarray]]:
+                     ) -> Tuple[torch.Tensor, List[float], List[float], List[np.ndarray], torch.Tensor]:
         
         if not isinstance(syn_token, list):
             raise TypeError("syn_token must be a list.")
@@ -199,7 +200,7 @@ class Token2Wav:
                 print(f"Chunk {i}: diff:{diff :.2f}%") # Optional logging
                 diff_list.append(diff)
 
-        return wav_bt, sec_list, diff_list, result_wav_list
+        return wav_bt, sec_list, diff_list, result_wav_list, mel_list
     
     def token2wav_with_cache(self,
                              token_bt: Union[List[int], np.ndarray, torch.Tensor],
