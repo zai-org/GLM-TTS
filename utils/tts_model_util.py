@@ -49,7 +49,7 @@ class Token2Wav:
                      prompt_feat_td: Optional[torch.Tensor] = None,
                      n_timesteps: int = 10,
                      queue: queue.Queue = None,
-                     ) -> Tuple[torch.Tensor, List[float], List[float], List[np.ndarray], torch.Tensor]:
+                     ) -> Tuple[torch.Tensor, List[float], List[float], List[np.ndarray], list[torch.Tensor]]:
         
         if not isinstance(syn_token, list):
             raise TypeError("syn_token must be a list.")
@@ -78,6 +78,7 @@ class Token2Wav:
                 prompt_token=prompt_token_list.to(self.device),
                 prompt_feat=prompt_feat_td.to(self.device),
                 embedding=embedding.to(self.device),
+                n_timesteps=n_timesteps,
                 last_step_cache=diff_cache,
                 is_causal=True,
                 block_pattern=[len(prompt_token_list)] + block_sizes
