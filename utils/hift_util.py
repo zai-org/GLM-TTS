@@ -126,9 +126,9 @@ class HiFTInference:
             center=False
         )
 
-def load_hift(device: str = "cuda", load_only_nsf: bool = False) -> HiFTInference:
+def load_hift(device: str = "cuda", load_only_nsf: bool = False, ckpt_path: str = '') -> HiFTInference:
     """Factory function to load HiFT model."""
     # Update this path to your actual relative path for the open source release
-    ckpt_path = 'ckpt/hift/hift.pt'
+    ckpt_path = ckpt_path or 'ckpt/hift/hift.pt'
     print(f"Loading HiFT model from {ckpt_path} on {device}...")
     return HiFTInference(ckpt_path, device=device, load_only_nsf=load_only_nsf)
